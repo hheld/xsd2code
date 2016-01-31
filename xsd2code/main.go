@@ -25,6 +25,6 @@ func main() {
 	fmt.Printf("%#v\n", schema)
 
 	for _, ct := range schema.ComplexTypes {
-		fmt.Printf("%#v\n", ct.Name)
+		fmt.Printf("%#v, %#v\n", ct.Name, ct.Attributes)
 	}
 }
