@@ -22,13 +22,16 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("%#v\n", schema)
-
 	for _, ct := range schema.ComplexTypes {
-		fmt.Printf("%#v, %#v\n", ct.Name, ct.Attributes)
+		//fmt.Printf("%#v, %#v\n", ct.Name, ct.Attributes)
+		ctf, _ := schema.FindType(ct.Name)
+		fmt.Printf("complex type: %#v\n", ctf)
 	}
 
 	for _, st := range schema.SimpleTypes {
-		fmt.Printf("%#v\n", st)
+		//fmt.Printf("%#v\n", st)
+		stf, _ := schema.FindType(st.Name)
+		fmt.Printf("simple type: %#v\n", stf)
+		st.ToCpp()
 	}
 }

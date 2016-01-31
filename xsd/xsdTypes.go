@@ -1,6 +1,8 @@
 package xsd
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+)
 
 type Enumeration struct {
 	XMLName xml.Name `xml:"enumeration"`
@@ -50,4 +52,9 @@ type Schema struct {
 	Elements     []Element     `xml:"element"`
 	ComplexTypes []ComplexType `xml:"complexType"`
 	SimpleTypes  []SimpleType  `xml:"simpleType"`
+}
+
+type TypePtr struct {
+	Ct *ComplexType
+	St *SimpleType
 }
