@@ -23,15 +23,19 @@ func main() {
 	}
 
 	for _, ct := range schema.ComplexTypes {
-		//fmt.Printf("%#v, %#v\n", ct.Name, ct.Attributes)
 		ctf, _ := schema.FindType(ct.Name)
 		fmt.Printf("complex type: %#v\n", ctf)
 	}
 
 	for _, st := range schema.SimpleTypes {
-		//fmt.Printf("%#v\n", st)
-		stf, _ := schema.FindType(st.Name)
-		fmt.Printf("simple type: %#v\n", stf)
-		st.ToCpp()
+		stAsCpp := st.ToCpp()
+
+		if stAsCpp.HeaderFile != nil {
+            fmt.Printf("Header file:\n%s\n", *stAsCpp.HeaderFile)
+		} else if stAsCpp.SourceFile != nil {
+            fmt.Printf("Source file:\n%s\n", *stAsCpp.SourceFile)
+		} else if stAsCpp.SourceLine != nil {
+            fmt.Printf("Source line:\n%s\n", *stAsCpp.SourceLine)
+		}
 	}
 }

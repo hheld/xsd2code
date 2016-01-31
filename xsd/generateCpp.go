@@ -1,11 +1,17 @@
 package xsd
 
 import (
+	"bytes"
 	"fmt"
-	"os"
 	"strings"
 	"text/template"
 )
+
+type CppCodeType struct {
+	SourceLine *string
+	HeaderFile *string
+	SourceFile *string
+}
 
 func capitalizeFirst(s string) string {
 	if len(s) > 1 {
@@ -18,9 +24,15 @@ func capitalizeFirst(s string) string {
 	return s
 }
 
-func (r *Restriction) ToCpp(typeName string) {
+func (r *Restriction) ToCpp(typeName string) (gen CppCodeType) {
 	if r.Enumerations == nil {
 		fmt.Printf("%s\n", r.Base)
+        switch r.Base {
+        case "xs:string":
+            line := fmt.Sprintf("std::string %s_;", typeName)
+            gen.SourceLine = &line
+            return
+        }
 		return
 	}
 
@@ -59,7 +71,9 @@ enum class {{.TypeName | capitalizeFirst}}
 		panic(err)
 	}
 
-	err = tmpl.Execute(os.Stdout, struct {
+	var headerFile bytes.Buffer
+
+	err = tmpl.Execute(&headerFile, struct {
 		TypeName   string
 		EnumValues []Enumeration
 	}{
@@ -70,8 +84,13 @@ enum class {{.TypeName | capitalizeFirst}}
 	if err != nil {
 		panic(err)
 	}
+
+	headerFileStr := headerFile.String()
+	gen.HeaderFile = &headerFileStr
+
+	return
 }
 
-func (st *SimpleType) ToCpp() {
-	st.Restriction.ToCpp(st.Name)
+func (st *SimpleType) ToCpp() CppCodeType {
+	return st.Restriction.ToCpp(st.Name)
 }
