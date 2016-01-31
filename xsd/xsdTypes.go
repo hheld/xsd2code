@@ -2,6 +2,29 @@ package xsd
 
 import "encoding/xml"
 
+type Enumeration struct {
+	XMLName xml.Name `xml:"enumeration"`
+	Value   string   `xml:"value,attr"`
+}
+
+type Pattern struct {
+	XMLName xml.Name `xml:"pattern"`
+	Value   string   `xml:"value,attr"`
+}
+
+type Restriction struct {
+	XMLName      xml.Name      `xml:"restriction"`
+	Base         string        `xml:"base,attr"`
+	Enumerations []Enumeration `xml:"enumeration"`
+	Patterns     Pattern       `xml:"pattern"`
+}
+
+type SimpleType struct {
+	XMLName     xml.Name    `xml:"simpleType"`
+	Name        string      `xml:"name,attr"`
+	Restriction Restriction `xml:"restriction"`
+}
+
 type Attribute struct {
 	XMLName xml.Name `xml:"attribute"`
 	Name    string   `xml:"name,attr"`
@@ -26,4 +49,5 @@ type Schema struct {
 	XMLName      xml.Name      `xml:"schema"`
 	Elements     []Element     `xml:"element"`
 	ComplexTypes []ComplexType `xml:"complexType"`
+	SimpleTypes  []SimpleType  `xml:"simpleType"`
 }

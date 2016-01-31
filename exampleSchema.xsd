@@ -19,12 +19,20 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="customerType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Bad"/>
+            <xs:enumeration value="Good"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="shiptotype">
         <xs:sequence>
             <xs:element name="name" type="stringtype"/>
             <xs:element name="address" type="stringtype"/>
             <xs:element name="city" type="stringtype"/>
             <xs:element name="country" type="stringtype"/>
+            <xs:element name="customer" type="customerType"/>
         </xs:sequence>
     </xs:complexType>
 

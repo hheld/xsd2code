@@ -27,4 +27,8 @@ func main() {
 	for _, ct := range schema.ComplexTypes {
 		fmt.Printf("%#v, %#v\n", ct.Name, ct.Attributes)
 	}
+
+	for _, st := range schema.SimpleTypes {
+		fmt.Printf("%#v\n", st)
+	}
 }
