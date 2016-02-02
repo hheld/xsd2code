@@ -39,15 +39,22 @@ func (r *Restriction) ToCpp(typeName string) (gen CppCodeType) {
 	// in this case it's an enum
 
 	enumTemplate := `
-#ifndef {{.TypeName | toUpper}}_H
-#define {{.TypeName | toUpper}}_H
-
-enum class {{.TypeName | capitalizeFirst}}
+{{$includeGuardStr := .TypeName | toUpper | printf "%s_H"}}
+#ifndef {{$includeGuardStr}}
+#define {{$includeGuardStr}}
+{{$enumName := .TypeName | capitalizeFirst}}
+enum class {{$enumName}}
 {
     {{.EnumValues | enumToString}}
 };
 
-#endif // {{.TypeName | toUpper}}_H
+namespace {{$enumName}}Conv
+{
+std::string toString({{$enumName}} v);
+{{$enumName}} fromString(const std::string &s);
+}
+
+#endif // {{$includeGuardStr}}
 
 `
 
