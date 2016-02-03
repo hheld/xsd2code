@@ -31,11 +31,15 @@ func main() {
 		stAsCpp := st.ToCpp()
 
 		if stAsCpp.HeaderFile != nil {
-            fmt.Printf("Header file:\n%s\n", *stAsCpp.HeaderFile)
-		} else if stAsCpp.SourceFile != nil {
-            fmt.Printf("Source file:\n%s\n", *stAsCpp.SourceFile)
-		} else if stAsCpp.SourceLine != nil {
-            fmt.Printf("Source line:\n%s\n", *stAsCpp.SourceLine)
+			fmt.Printf("Header file %s:\n%s\n", stAsCpp.HeaderFile.FileName, stAsCpp.HeaderFile.Content)
+		}
+
+		if stAsCpp.SourceFile != nil {
+			fmt.Printf("Source file %s:\n%s\n", stAsCpp.SourceFile.FileName, stAsCpp.SourceFile.Content)
+		}
+
+		if stAsCpp.SourceLine != nil {
+			fmt.Printf("Source line:\n%s\n", *stAsCpp.SourceLine)
 		}
 	}
 }

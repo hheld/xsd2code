@@ -7,10 +7,15 @@ import (
 	"text/template"
 )
 
+type CppFileType struct {
+	FileName string
+	Content  string
+}
+
 type CppCodeType struct {
 	SourceLine *string
-	HeaderFile *string
-	SourceFile *string
+	HeaderFile *CppFileType
+	SourceFile *CppFileType
 }
 
 func capitalizeFirst(s string) string {
@@ -26,22 +31,32 @@ func capitalizeFirst(s string) string {
 
 func (r *Restriction) ToCpp(typeName string) (gen CppCodeType) {
 	if r.Enumerations == nil {
-		fmt.Printf("%s\n", r.Base)
-        switch r.Base {
-        case "xs:string":
-            line := fmt.Sprintf("std::string %s_;", typeName)
-            gen.SourceLine = &line
-            return
-        }
+		var line string
+
+		switch r.Base {
+		case "xs:string":
+			line = fmt.Sprintf("std::string %s_;", typeName)
+		case "xs:positiveInteger":
+			line = fmt.Sprintf("unsigned int %s_;", typeName)
+		case "xs:decimal":
+			line = fmt.Sprintf("double %s_;", typeName)
+		case "xs:integer", "xs:int":
+			line = fmt.Sprintf("int %s_;", typeName)
+		default:
+            line = fmt.Sprintf("std::string %s_;", typeName)
+		}
+
+		gen.SourceLine = &line
 		return
 	}
 
 	// in this case it's an enum
 
-	enumTemplate := `
-{{$includeGuardStr := .TypeName | toUpper | printf "%s_H"}}
+	enumHeaderTemplate := `{{$includeGuardStr := .TypeName | toUpper | printf "%s_H"}}
 #ifndef {{$includeGuardStr}}
 #define {{$includeGuardStr}}
+
+#include <string>
 {{$enumName := .TypeName | capitalizeFirst}}
 enum class {{$enumName}}
 {
@@ -55,6 +70,38 @@ std::string toString({{$enumName}} v);
 }
 
 #endif // {{$includeGuardStr}}
+
+`
+
+	enumSourceTemplate := `{{$enumName := .TypeName | capitalizeFirst}}
+#include "{{$enumName}}.h"
+
+namespace {{$enumName}}Conv
+{
+std::string toString({{$enumName}} v)
+{
+    std::string vAsStr;
+
+    switch(v)
+    {
+    {{range .EnumValues}}
+    case {{.Value}}:
+        vAsStr = "{{.Value}}";
+        break;
+    {{end}}
+    }
+
+    return std::move(vAsStr);
+}
+
+{{$enumName}} fromString(const std::string &s)
+{
+    {{range .EnumValues}}
+    if(s=="{{.Value}}") return {{.Value}};
+    {{end}}
+    throw("Unknown value '" + s + "' for enum '{{$enumName}}'.");
+}
+}
 
 `
 
@@ -72,28 +119,55 @@ std::string toString({{$enumName}} v);
 		},
 	}
 
-	tmpl, err := template.New("generateCppEnum").Funcs(funcMap).Parse(enumTemplate)
+	headerTemplate, err := template.New("generateCppEnumHeader").Funcs(funcMap).Parse(enumHeaderTemplate)
 
 	if err != nil {
 		panic(err)
 	}
 
-	var headerFile bytes.Buffer
+	var headerFileContent bytes.Buffer
 
-	err = tmpl.Execute(&headerFile, struct {
+	templateValues := struct {
 		TypeName   string
 		EnumValues []Enumeration
 	}{
 		TypeName:   typeName,
 		EnumValues: r.Enumerations,
-	})
+	}
+
+	err = headerTemplate.Execute(&headerFileContent, templateValues)
 
 	if err != nil {
 		panic(err)
 	}
 
-	headerFileStr := headerFile.String()
-	gen.HeaderFile = &headerFileStr
+	headerFile := CppFileType{
+		FileName: fmt.Sprintf("%s.h", capitalizeFirst(typeName)),
+		Content:  headerFileContent.String(),
+	}
+
+	gen.HeaderFile = &headerFile
+
+	sourceTemplate, err := template.New("generateCppEnumSource").Funcs(funcMap).Parse(enumSourceTemplate)
+
+	if err != nil {
+		panic(err)
+	}
+
+	var sourceFileContent bytes.Buffer
+
+	err = sourceTemplate.Execute(&sourceFileContent, templateValues)
+
+	if err != nil {
+		panic(err)
+	}
+
+	sourceFile := CppFileType{
+		FileName: fmt.Sprintf("%s.cpp", capitalizeFirst(typeName)),
+		Content:  sourceFileContent.String(),
+	}
+
+	gen.SourceFile = &sourceFile
 
 	return
 }
