@@ -2,6 +2,8 @@ package xsd
 
 import (
 	"encoding/xml"
+	"math"
+	"strconv"
 )
 
 type Enumeration struct {
@@ -35,9 +37,45 @@ type Attribute struct {
 }
 
 type Element struct {
-	XMLName xml.Name `xml:"element"`
-	Name    string   `xml:"name,attr"`
-	Type    string   `xml:"type,attr"`
+	XMLName   xml.Name `xml:"element"`
+	Name      string   `xml:"name,attr"`
+	Type      string   `xml:"type,attr"`
+	MinOccurs int      `xml:"minOccurs,attr"`
+	MaxOccurs int      `xml:"maxOccurs,attr"`
+}
+
+func (el *Element) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	// prevent recursion
+	type elem Element
+
+	type element struct {
+		elem
+		MaxOccursStr string `xml:"maxOccurs,attr"`
+	}
+
+	item := element{
+		MaxOccursStr: "1",
+		elem: elem{
+			MinOccurs: 1,
+		},
+	}
+
+	if err := d.DecodeElement(&item, &start); err != nil {
+		return err
+	}
+
+	if item.MaxOccursStr == "unbounded" {
+		el.MaxOccurs = int(math.MaxInt64)
+	} else {
+		el.MaxOccurs, _ = strconv.Atoi(item.MaxOccursStr)
+	}
+
+	el.Name = item.Name
+	el.XMLName = item.XMLName
+	el.Type = item.Type
+	el.MinOccurs = item.MinOccurs
+
+	return nil
 }
 
 type ComplexType struct {

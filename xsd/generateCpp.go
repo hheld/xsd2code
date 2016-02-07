@@ -43,7 +43,7 @@ func (r *Restriction) ToCpp(typeName string) (gen CppCodeType) {
 		case "xs:integer", "xs:int":
 			line = fmt.Sprintf("int %s_;", typeName)
 		default:
-            line = fmt.Sprintf("std::string %s_;", typeName)
+			line = fmt.Sprintf("std::string %s_;", typeName)
 		}
 
 		gen.SourceLine = &line
