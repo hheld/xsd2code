@@ -52,7 +52,7 @@ func (r *Restriction) ToCpp(typeName string) (gen CppCodeType) {
 
 	// in this case it's an enum
 
-	enumHeaderTemplate := `{{$includeGuardStr := .TypeName | toUpper | printf "%s_H"}}
+	enumHeaderTemplate := `{{$includeGuardStr := .TypeName | toUpper | printf "%s_H" -}}
 #ifndef {{$includeGuardStr}}
 #define {{$includeGuardStr}}
 
@@ -70,10 +70,9 @@ std::string toString({{$enumName}} v);
 }
 
 #endif // {{$includeGuardStr}}
-
 `
 
-	enumSourceTemplate := `{{$enumName := .TypeName | capitalizeFirst}}
+	enumSourceTemplate := `{{$enumName := .TypeName | capitalizeFirst -}}
 #include "{{$enumName}}.h"
 
 namespace {{$enumName}}Conv
@@ -84,11 +83,11 @@ std::string toString({{$enumName}} v)
 
     switch(v)
     {
-    {{range .EnumValues}}
+    {{- range .EnumValues}}
     case {{.Value}}:
         vAsStr = "{{.Value}}";
         break;
-    {{end}}
+    {{- end}}
     }
 
     return std::move(vAsStr);
@@ -96,13 +95,12 @@ std::string toString({{$enumName}} v)
 
 {{$enumName}} fromString(const std::string &s)
 {
-    {{range .EnumValues}}
+    {{- range .EnumValues}}
     if(s=="{{.Value}}") return {{.Value}};
-    {{end}}
+    {{- end}}
     throw("Unknown value '" + s + "' for enum '{{$enumName}}'.");
 }
 }
-
 `
 
 	funcMap := template.FuncMap{

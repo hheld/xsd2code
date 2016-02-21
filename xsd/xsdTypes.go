@@ -46,16 +46,16 @@ type Element struct {
 
 func (el *Element) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	// prevent recursion
-	type elem Element
+	type Elem Element
 
 	type element struct {
-		elem
+		Elem
 		MaxOccursStr string `xml:"maxOccurs,attr"`
 	}
 
 	item := element{
 		MaxOccursStr: "1",
-		elem: elem{
+		Elem: Elem{
 			MinOccurs: 1,
 		},
 	}
