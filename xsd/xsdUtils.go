@@ -2,17 +2,24 @@ package xsd
 
 import "errors"
 
-func (schema *Schema) FindType(typeName string) (tp TypePtr, err error) {
+func (schema *Schema) FindType(typeName string) (tp XsdType, err error) {
 	for _, ct := range schema.ComplexTypes {
 		if ct.Name == typeName {
-			tp.Ct = &ct
+			tp = &ct
 			return
 		}
 	}
 
 	for _, st := range schema.SimpleTypes {
 		if st.Name == typeName {
-			tp.St = &st
+			tp = &st
+			return
+		}
+	}
+
+	for _, el := range schema.Elements {
+		if el.Name == typeName {
+			tp = &el
 			return
 		}
 	}

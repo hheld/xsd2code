@@ -29,6 +29,8 @@ type SimpleType struct {
 	Restriction Restriction `xml:"restriction"`
 }
 
+func (st *SimpleType) isXsdType() {}
+
 type Attribute struct {
 	XMLName xml.Name `xml:"attribute"`
 	Name    string   `xml:"name,attr"`
@@ -43,6 +45,8 @@ type Element struct {
 	MinOccurs int      `xml:"minOccurs,attr"`
 	MaxOccurs int      `xml:"maxOccurs,attr"`
 }
+
+func (el *Element) isXsdType() {}
 
 func (el *Element) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	// prevent recursion
@@ -85,6 +89,8 @@ type ComplexType struct {
 	Attributes []Attribute `xml:"attribute"`
 }
 
+func (ct *ComplexType) isXsdType() {}
+
 type Schema struct {
 	XMLName      xml.Name      `xml:"schema"`
 	Elements     []Element     `xml:"element"`
@@ -92,7 +98,6 @@ type Schema struct {
 	SimpleTypes  []SimpleType  `xml:"simpleType"`
 }
 
-type TypePtr struct {
-	Ct *ComplexType
-	St *SimpleType
+type XsdType interface {
+	isXsdType()
 }

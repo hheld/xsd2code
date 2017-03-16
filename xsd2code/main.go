@@ -24,7 +24,7 @@ func main() {
 
 	for _, ct := range schema.ComplexTypes {
 		ctf, _ := schema.FindType(ct.Name)
-		fmt.Printf("complex type: %#v\n", ctf.Ct)
+		fmt.Printf("complex type: %#v\n", ctf)
 	}
 
 	for _, st := range schema.SimpleTypes {
