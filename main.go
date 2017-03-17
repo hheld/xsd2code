@@ -4,6 +4,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path"
 
 	"github.com/hheld/xsd2code/xsd"
 )
@@ -23,6 +25,16 @@ func main() {
 		panic(err)
 	}
 
+	const outDir = "cpp"
+
+	if _, err := os.Stat("outDir"); os.IsNotExist(err) {
+		err = os.Mkdir(outDir, 0755)
+	}
+
+	if err != nil {
+		panic("There was an error: " + err.Error())
+	}
+
 	for _, ct := range schema.ComplexTypes {
 		ctf, _ := schema.FindType(ct.Name)
 		fmt.Printf("complex type: %#v\n", ctf)
@@ -32,11 +44,19 @@ func main() {
 		header, source := st.ToCpp()
 
 		if header != nil {
-			fmt.Printf("Header file %s:\n%s\n", header.FileName, header.Content)
+			err = ioutil.WriteFile(path.Join(outDir, header.FileName), []byte(header.Content), 0644)
+
+			if err != nil {
+				panic("There was an error: " + err.Error())
+			}
 		}
 
 		if source != nil {
-			fmt.Printf("Source file %s:\n%s\n", source.FileName, source.Content)
+			err = ioutil.WriteFile(path.Join(outDir, source.FileName), []byte(source.Content), 0644)
+
+			if err != nil {
+				panic("There was an error: " + err.Error())
+			}
 		}
 	}
 }
