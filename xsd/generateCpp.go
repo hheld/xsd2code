@@ -3,7 +3,6 @@ package xsd
 import (
 	"bytes"
 	"fmt"
-	"strings"
 	"text/template"
 )
 
@@ -16,17 +15,6 @@ type CppCodeType struct {
 	SourceLine *string
 	HeaderFile *CppFileType
 	SourceFile *CppFileType
-}
-
-func capitalizeFirst(s string) string {
-	if len(s) > 1 {
-		return strings.ToUpper(string(s[0])) + s[1:]
-	} else if len(s) == 1 {
-		return strings.ToUpper(string(s[0]))
-	}
-
-	// s = ""
-	return s
 }
 
 func (r *Restriction) ToCpp(typeName string) (gen CppCodeType) {
@@ -52,72 +40,9 @@ func (r *Restriction) ToCpp(typeName string) (gen CppCodeType) {
 
 	// in this case it's an enum
 
-	enumHeaderTemplate := `{{$includeGuardStr := .TypeName | toUpper | printf "%s_H" -}}
-#ifndef {{$includeGuardStr}}
-#define {{$includeGuardStr}}
+	enumTpl := generateEnumTemplate(typeName, r.Enumerations)
 
-#include <string>
-{{$enumName := .TypeName | capitalizeFirst}}
-enum class {{$enumName}}
-{
-    {{.EnumValues | enumToString}}
-};
-
-namespace {{$enumName}}Conv
-{
-std::string toString({{$enumName}} v);
-{{$enumName}} fromString(const std::string &s);
-}
-
-#endif // {{$includeGuardStr}}
-`
-
-	enumSourceTemplate := `{{$enumName := .TypeName | capitalizeFirst -}}
-#include "{{$enumName}}.h"
-
-namespace {{$enumName}}Conv
-{
-std::string toString({{$enumName}} v)
-{
-    std::string vAsStr;
-
-    switch(v)
-    {
-    {{- range .EnumValues}}
-    case {{.Value}}:
-        vAsStr = "{{.Value}}";
-        break;
-    {{- end}}
-    }
-
-    return std::move(vAsStr);
-}
-
-{{$enumName}} fromString(const std::string &s)
-{
-    {{- range .EnumValues}}
-    if(s=="{{.Value}}") return {{.Value}};
-    {{- end}}
-    throw("Unknown value '" + s + "' for enum '{{$enumName}}'.");
-}
-}
-`
-
-	funcMap := template.FuncMap{
-		"toUpper":         strings.ToUpper,
-		"capitalizeFirst": capitalizeFirst,
-		"enumToString": func(enumValues []Enumeration) string {
-			s := make([]string, len(enumValues))
-
-			for i, ev := range enumValues {
-				s[i] = ev.Value
-			}
-
-			return strings.Join(s, ",\n    ")
-		},
-	}
-
-	headerTemplate, err := template.New("generateCppEnumHeader").Funcs(funcMap).Parse(enumHeaderTemplate)
+	headerTemplate, err := template.New("generateCppEnumHeader").Funcs(enumTpl.funcs).Parse(enumTpl.header)
 
 	if err != nil {
 		panic(err)
@@ -125,15 +50,7 @@ std::string toString({{$enumName}} v)
 
 	var headerFileContent bytes.Buffer
 
-	templateValues := struct {
-		TypeName   string
-		EnumValues []Enumeration
-	}{
-		TypeName:   typeName,
-		EnumValues: r.Enumerations,
-	}
-
-	err = headerTemplate.Execute(&headerFileContent, templateValues)
+	err = headerTemplate.Execute(&headerFileContent, enumTpl.values)
 
 	if err != nil {
 		panic(err)
@@ -146,7 +63,7 @@ std::string toString({{$enumName}} v)
 
 	gen.HeaderFile = &headerFile
 
-	sourceTemplate, err := template.New("generateCppEnumSource").Funcs(funcMap).Parse(enumSourceTemplate)
+	sourceTemplate, err := template.New("generateCppEnumSource").Funcs(enumTpl.funcs).Parse(enumTpl.source)
 
 	if err != nil {
 		panic(err)
@@ -154,7 +71,7 @@ std::string toString({{$enumName}} v)
 
 	var sourceFileContent bytes.Buffer
 
-	err = sourceTemplate.Execute(&sourceFileContent, templateValues)
+	err = sourceTemplate.Execute(&sourceFileContent, enumTpl.values)
 
 	if err != nil {
 		panic(err)
