@@ -26,6 +26,14 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="myEnumType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="V1"/>
+            <xs:enumeration value="V2"/>
+            <xs:enumeration value="V3"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="shiptotype">
         <xs:sequence>
             <xs:element name="name" type="stringtype"/>

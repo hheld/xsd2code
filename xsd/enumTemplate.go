@@ -96,7 +96,7 @@ const enumHeaderTemplate = `{{$includeGuardStr := .TypeName | toUpper | printf "
 #define {{$includeGuardStr}}
 
 #include <string>
-{{$enumName := .TypeName | capitalizeFirst}}
+{{$enumName := (print .TypeName "Enum") | capitalizeFirst}}
 enum class {{$enumName}}
 {
     {{.EnumValues | enumToString}}
@@ -108,11 +108,24 @@ std::string toString({{$enumName}} v);
 {{$enumName}} fromString(const std::string &s);
 }
 
+{{$className := .TypeName | capitalizeFirst -}}
+class {{$className}} final
+{
+public:
+	{{$className}}();
+
+	void setValue(const std::string &v);
+	std::string value() const;
+
+private:
+	{{$enumName}} value_;
+};
+
 #endif // {{$includeGuardStr}}
 `
 
-const enumSourceTemplate = `{{$enumName := .TypeName | capitalizeFirst -}}
-#include "{{$enumName}}.h"
+const enumSourceTemplate = `{{$enumName := (print .TypeName "Enum") | capitalizeFirst -}}
+#include "{{.TypeName | capitalizeFirst}}.h"
 
 namespace {{$enumName}}Conv
 {
@@ -123,7 +136,7 @@ std::string toString({{$enumName}} v)
     switch(v)
     {
     {{- range .EnumValues}}
-    case {{.Value}}:
+    case {{$enumName}}::{{.Value}}:
         vAsStr = "{{.Value}}";
         break;
     {{- end}}
@@ -135,9 +148,26 @@ std::string toString({{$enumName}} v)
 {{$enumName}} fromString(const std::string &s)
 {
     {{- range .EnumValues}}
-    if(s=="{{.Value}}") return {{.Value}};
+    if(s=="{{.Value}}") return {{$enumName}}::{{.Value}};
     {{- end}}
     throw("Unknown value '" + s + "' for enum '{{$enumName}}'.");
 }
 }
+
+{{$className := .TypeName | capitalizeFirst -}}
+{{$className}}::{{$className}}()
+{
+
+}
+
+void {{$className}}::setValue(const std::string &v)
+{
+	value_ = {{$enumName}}Conv::fromString(v);
+}
+
+std::string {{$className}}::value() const
+{
+	return {{$enumName}}Conv::toString(value_);
+}
+
 `
