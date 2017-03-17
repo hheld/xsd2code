@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
-	"github.com/hheld/xsd2code/xsd"
 	"io/ioutil"
+
+	"github.com/hheld/xsd2code/xsd"
 )
 
 func main() {
