@@ -100,4 +100,5 @@ type Schema struct {
 
 type XsdType interface {
 	isXsdType()
+	ToCpp() (header *CppFile, source *CppFile)
 }

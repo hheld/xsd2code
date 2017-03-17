@@ -1,6 +1,8 @@
 package xsd
 
 import (
+	"bytes"
+	"fmt"
 	"strings"
 	"text/template"
 )
@@ -17,7 +19,53 @@ type enumTemplateArgs struct {
 	EnumValues []Enumeration
 }
 
-func generateEnumTemplate(name string, values []Enumeration) enumTemplate {
+func (et *enumTemplate) generateHeader() *CppFile {
+	headerTemplate, err := template.New("generateCppEnumHeader").Funcs(et.funcs).Parse(et.header)
+
+	if err != nil {
+		panic(err)
+	}
+
+	var headerFileContent bytes.Buffer
+
+	err = headerTemplate.Execute(&headerFileContent, et.values)
+
+	if err != nil {
+		panic(err)
+	}
+
+	headerFile := CppFile{
+		FileName: fmt.Sprintf("%s.h", capitalizeFirst(et.values.TypeName)),
+		Content:  headerFileContent.String(),
+	}
+
+	return &headerFile
+}
+
+func (et *enumTemplate) generateSource() *CppFile {
+	sourceTemplate, err := template.New("generateCppEnumSource").Funcs(et.funcs).Parse(et.source)
+
+	if err != nil {
+		panic(err)
+	}
+
+	var sourceFileContent bytes.Buffer
+
+	err = sourceTemplate.Execute(&sourceFileContent, et.values)
+
+	if err != nil {
+		panic(err)
+	}
+
+	sourceFile := CppFile{
+		FileName: fmt.Sprintf("%s.cpp", capitalizeFirst(et.values.TypeName)),
+		Content:  sourceFileContent.String(),
+	}
+
+	return &sourceFile
+}
+
+func enumGenerator(name string, values []Enumeration) generator {
 	enumInstance := enumTemplate{
 		header: enumHeaderTemplate,
 		source: enumSourceTemplate,
@@ -40,7 +88,7 @@ func generateEnumTemplate(name string, values []Enumeration) enumTemplate {
 		},
 	}
 
-	return enumInstance
+	return &enumInstance
 }
 
 const enumHeaderTemplate = `{{$includeGuardStr := .TypeName | toUpper | printf "%s_H" -}}
