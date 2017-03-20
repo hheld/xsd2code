@@ -169,5 +169,4 @@ std::string {{$className}}::value() const
 {
 	return {{$enumName}}Conv::toString(value_);
 }
-
 `
