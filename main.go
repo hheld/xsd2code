@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -36,8 +35,23 @@ func main() {
 	}
 
 	for _, ct := range schema.ComplexTypes {
-		ctf, _ := schema.FindType(ct.Name)
-		fmt.Printf("complex type: %#v\n", ctf)
+		header, source := ct.ToCpp()
+
+		if header != nil {
+			err = ioutil.WriteFile(path.Join(outDir, header.FileName), []byte(header.Content), 0644)
+
+			if err != nil {
+				panic("There was an error: " + err.Error())
+			}
+		}
+
+		if source != nil {
+			err = ioutil.WriteFile(path.Join(outDir, source.FileName), []byte(source.Content), 0644)
+
+			if err != nil {
+				panic("There was an error: " + err.Error())
+			}
+		}
 	}
 
 	for _, st := range schema.SimpleTypes {
