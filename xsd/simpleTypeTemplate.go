@@ -98,7 +98,7 @@ public:
 	{{$className}}();
 
 	void setValue(const {{.SimpleTypeName}} &v);
-	{{.SimpleTypeName}} value() const;
+	const {{.SimpleTypeName}} &value() const;
 
 private:
 	{{.SimpleTypeName}} value_;
