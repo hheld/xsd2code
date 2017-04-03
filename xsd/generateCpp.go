@@ -49,7 +49,7 @@ func (st *SimpleType) ToCpp() (header *CppFile, source *CppFile) {
 }
 
 func (ct *ComplexType) ToCpp() (header *CppFile, source *CppFile) {
-	generatorTpl := complexTypeGenerator(ct.Name)
+	generatorTpl := complexTypeGenerator(ct.Name, ct.Attributes, ct.Sequence)
 
 	if generatorTpl != nil {
 		header = generatorTpl.generateHeader()

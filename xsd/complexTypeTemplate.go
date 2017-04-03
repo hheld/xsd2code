@@ -15,7 +15,9 @@ type complexTypeTemplate struct {
 }
 
 type complexTypeTemplateArgs struct {
-	TypeName string
+	TypeName   string
+	Elements   []Element
+	Attributes []Attribute
 }
 
 func (ctt *complexTypeTemplate) generateHeader() *CppFile {
@@ -64,7 +66,7 @@ func (ctt *complexTypeTemplate) generateSource() *CppFile {
 	return &sourceFile
 }
 
-func complexTypeGenerator(name string) generator {
+func complexTypeGenerator(name string, attributes []Attribute, elements []Element) generator {
 	complexTypeInstance := complexTypeTemplate{
 		header: complexTypeHeaderTemplate,
 		source: complexTypeSourceTemplate,
@@ -73,7 +75,9 @@ func complexTypeGenerator(name string) generator {
 			"capitalizeFirst": capitalizeFirst,
 		},
 		values: complexTypeTemplateArgs{
-			TypeName: name,
+			TypeName:   name,
+			Attributes: attributes,
+			Elements:   elements,
 		},
 	}
 
@@ -84,13 +88,36 @@ const complexTypeHeaderTemplate = `{{$includeGuardStr := .TypeName | toUpper | p
 #ifndef {{$includeGuardStr}}
 #define {{$includeGuardStr}}
 
+{{range .Attributes -}}
+#include "{{.Type | capitalizeFirst}}.h"
+{{end}}
+{{range .Elements -}}
+#include "{{.Type | capitalizeFirst}}.h"
+{{end}}
+
 {{$className := .TypeName | capitalizeFirst -}}
 class {{$className}} final
 {
 public:
 	{{$className}}();
 
+	{{range .Attributes -}}
+	const {{.Type | capitalizeFirst}} &{{.Name}}() const;
+	void set{{.Name | capitalizeFirst}}(const {{.Type | capitalizeFirst}} &v);
+
+	{{end}}
+	{{range .Elements -}}
+	const {{.Type | capitalizeFirst}} &{{.Name}}() const;
+	void set{{.Name | capitalizeFirst}}(const {{.Type | capitalizeFirst}} &v);
+
+	{{end}}
 private:
+	{{range .Attributes -}}
+	{{.Type | capitalizeFirst}} {{.Name}}_;
+	{{end}}
+	{{range .Elements -}}
+	{{.Type | capitalizeFirst}} {{.Name}}_;
+	{{end}}
 };
 
 #endif // {{$includeGuardStr}}`
