@@ -124,4 +124,32 @@ private:
 
 const complexTypeSourceTemplate = `{{$className := .TypeName | capitalizeFirst -}}
 #include "{{$className}}.h"
+
+{{$className}}::{{$className}}()
+{}
+
+{{range .Attributes -}}
+const {{.Type | capitalizeFirst}} &{{$className}}::{{.Name}}() const
+{
+	return {{.Name}}_;
+}
+
+void {{$className}}::set{{.Name | capitalizeFirst}}(const {{.Type | capitalizeFirst}} &v)
+{
+	{{.Name}}_ = v;
+}
+
+{{end}}
+{{range .Elements -}}
+const {{.Type | capitalizeFirst}} &{{$className}}::{{.Name}}() const
+{
+	return {{.Name}}_;
+}
+
+void {{$className}}::set{{.Name | capitalizeFirst}}(const {{.Type | capitalizeFirst}} &v)
+{
+	{{.Name}}_ = v;
+}
+
+{{end}}
 `

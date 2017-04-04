@@ -110,12 +110,15 @@ private:
 const simpleTypeSourceTemplate = `{{$className := .TypeName | capitalizeFirst -}}
 #include "{{$className}}.h"
 
+{{$className}}::{{$className}}()
+{}
+
 void {{$className}}::setValue(const {{.SimpleTypeName}} &v)
 {
 	value_ = v;
 }
 
-{{.SimpleTypeName}} {{$className}}::value() const
+const {{.SimpleTypeName}} &{{$className}}::value() const
 {
 	return value_;
 }
